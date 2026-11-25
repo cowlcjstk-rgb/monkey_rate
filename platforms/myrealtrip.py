@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from core.types import Item
-from core.utils import extract_first_text, keyword_hit, clean_price, pick_title_from_lines
+from core.utils import extract_first_text, keyword_hit, clean_price, pick_title_from_lines, enrich_seller_metadata
 
 
 TH_SELECTED = "cities%3ABangkok%3AChiang+Mai%3APattaya%3APhuket%3AKrabi%3AHua+Hin"
@@ -128,4 +128,4 @@ def crawl(driver, keyword: str, limit: int = 30):
         except:
             continue
 
-    return results
+    return enrich_seller_metadata(results)

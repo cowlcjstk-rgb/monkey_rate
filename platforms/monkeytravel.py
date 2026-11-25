@@ -2,6 +2,7 @@
 import re
 
 from core.types import Item
+from core.utils import enrich_seller_metadata
 
 SEARCH_API = "https://www.monkeytravel.com/api/search/productList.php"
 TARGET_PARTS = [3, 4, 5, 8]
@@ -102,4 +103,4 @@ def crawl(driver, keyword: str, limit: int = 40):
 
         results.append(Item("몽키트래블", title, price, link))
 
-    return results
+    return enrich_seller_metadata(results)

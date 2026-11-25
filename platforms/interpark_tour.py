@@ -6,7 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from core.types import Item
-from core.utils import keyword_hit
+from core.utils import enrich_seller_metadata, keyword_hit
 
 
 SEARCH_URL = "https://nol.yanolja.com/discovery/list/search/PRODUCT_CATEGORY_GLOBAL_TNA"
@@ -68,7 +68,7 @@ def crawl(driver, keyword: str, limit: int = 40):
                 continue
             results.append(Item("NOL", title, _price_text(card), link, merchant_name=card.get("merchant", "")))
             if len(results) >= limit:
-                return results
+                return enrich_seller_metadata(results)
 
         previous_count = len(seen)
         more_button = driver.execute_script(
@@ -83,4 +83,4 @@ def crawl(driver, keyword: str, limit: int = 40):
         except Exception:
             break
 
-    return results
+    return enrich_seller_metadata(results)

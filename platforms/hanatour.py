@@ -5,7 +5,7 @@ import urllib.parse
 from typing import Any, Dict, List, Optional
 
 from core.types import Item
-from core.utils import keyword_hit
+from core.utils import enrich_seller_metadata, keyword_hit
 
 API_URL_KEYWORD = "gw.hanatour.com/search/v2/attr/localTour/search"
 SEARCH_PAGE = "https://www.hanatour.com/tour-ticket/product"
@@ -127,4 +127,4 @@ def crawl(driver, keyword: str, limit: int = 40):
     if not payload:
         return []
 
-    return _extract_items(payload, limit=limit, keyword=keyword)
+    return enrich_seller_metadata(_extract_items(payload, limit=limit, keyword=keyword))
