@@ -1,10 +1,5 @@
 import re
 import time
-import json
-import html
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -101,75 +96,3 @@ def pick_title_from_lines(lines, keyword):
             return l
 
     return max(cleaned, key=len)
-
-
-def _organization_name(value):
-    if isinstance(value, dict):
-        return (value.get("name") or "").strip()
-    if isinstance(value, list):
-        for entry in value:
-            name = _organization_name(entry)
-            if name:
-                return name
-    return ""
-
-
-def _seller_metadata_from_html(source):
-    supplier = ""
-    merchant = ""
-    scripts = re.findall(
-        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
-        source or "",
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    for raw in scripts:
-        try:
-            payload = json.loads(html.unescape(raw))
-        except (TypeError, ValueError):
-            continue
-        stack = payload if isinstance(payload, list) else [payload]
-        while stack:
-            node = stack.pop()
-            if isinstance(node, list):
-                stack.extend(node)
-            elif isinstance(node, dict):
-                supplier = supplier or _organization_name(node.get("provider"))
-                merchant = merchant or _organization_name(node.get("seller"))
-                stack.extend(value for value in node.values() if isinstance(value, (dict, list)))
-        if supplier and merchant:
-            break
-
-    match = re.search(
-        r'<strong\b(?=[^>]*seller-crown-icon)[^>]*>(.*?)</strong>',
-        source or "",
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if match:
-        seller_text = re.sub(r"<[^>]+>", "", match.group(1))
-        merchant = html.unescape(seller_text).strip() or merchant
-    return supplier, merchant
-
-
-def enrich_seller_metadata(items, max_workers=8):
-    """Read provider/seller names from product pages that publish them."""
-    pending = [item for item in items if item.link and (not item.supplier_name or not item.merchant_name)]
-    if not pending:
-        return items
-
-    def fetch(item):
-        try:
-            response = requests.get(item.link, headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
-            if response.status_code >= 400:
-                return item, "", ""
-            supplier, merchant = _seller_metadata_from_html(response.text)
-            return item, supplier, merchant
-        except requests.RequestException:
-            return item, "", ""
-
-    with ThreadPoolExecutor(max_workers=min(max_workers, len(pending))) as executor:
-        futures = [executor.submit(fetch, item) for item in pending]
-        for future in as_completed(futures):
-            item, supplier, merchant = future.result()
-            item.supplier_name = item.supplier_name or supplier
-            item.merchant_name = item.merchant_name or merchant
-    return items

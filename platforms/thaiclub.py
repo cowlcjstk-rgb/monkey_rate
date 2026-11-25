@@ -2,7 +2,7 @@
 from selenium.webdriver.common.by import By
 
 from core.types import Item
-from core.utils import clean_price, enrich_seller_metadata
+from core.utils import clean_price
 
 
 def _normalize_no_space(text: str) -> str:
@@ -44,4 +44,4 @@ def crawl(driver, keyword: str, limit: int = 40):
         except Exception:
             continue
 
-    return enrich_seller_metadata(results)
+    return results

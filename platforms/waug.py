@@ -3,7 +3,7 @@ import urllib.parse
 from selenium.webdriver.common.by import By
 
 from core.types import Item
-from core.utils import wait_present, smart_scroll, extract_first_text, clean_price, keyword_hit, enrich_seller_metadata
+from core.utils import wait_present, smart_scroll, extract_first_text, clean_price, keyword_hit
 
 
 def crawl(driver, keyword: str, limit: int = 40):
@@ -56,4 +56,4 @@ def crawl(driver, keyword: str, limit: int = 40):
         except Exception:
             continue
 
-    return enrich_seller_metadata(results)
+    return results

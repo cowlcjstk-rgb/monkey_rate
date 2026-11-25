@@ -4,7 +4,7 @@ import re
 import urllib.parse
 
 from core.types import Item
-from core.utils import keyword_hit, enrich_seller_metadata
+from core.utils import keyword_hit
 
 
 PRODUCT_META_RE = re.compile(
@@ -61,4 +61,4 @@ def crawl(driver, keyword: str, limit: int = 40):
 
     # 페이지 소스의 data-shp 메타데이터에서 상품명/가격/ID 파싱
     page_source = driver.page_source or ""
-    return enrich_seller_metadata(_extract_from_source(page_source, limit=limit, keyword=keyword))
+    return _extract_from_source(page_source, limit=limit, keyword=keyword)

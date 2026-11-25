@@ -356,7 +356,7 @@ if run and keyword and selected_platforms:
 
     with st.status("데이터 수집 중...", expanded=True):
         futures = []
-        with ThreadPoolExecutor(max_workers=min(6, len(selected_platforms))) as ex:
+        with ThreadPoolExecutor(max_workers=min(4, len(selected_platforms))) as ex:
             for name in selected_platforms:
                 futures.append(ex.submit(collect_one, name, PLATFORM_CRAWLERS[name], keyword))
 
