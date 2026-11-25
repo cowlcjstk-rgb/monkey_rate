@@ -53,7 +53,7 @@ def get_driver():
 def get_reliability_label(platform: str, price_num):
     if price_num is None:
         return "가격확인필요"
-    realtime_platforms = {"인터파크 투어", "몽키트래블", "더블유아이티", "타이클럽"}
+    realtime_platforms = {"NOL", "몽키트래블", "더블유아이티", "타이클럽"}
     return "즉시반영" if platform in realtime_platforms else "변동가능"
 
 
@@ -116,7 +116,7 @@ PLATFORM_ROW_COLORS = {
     "몽키트래블": "#f8e7a7",
     "와그": "#dbe4ff",
     "하나투어": "#d9efff",
-    "인터파크 투어": "#d7f3e3",
+    "NOL": "#d7f3e3",
     "더블유아이티": "#f7dcec",
     "타이클럽": "#f8dada",
     "마이리얼트립": "#e3dcfb",
@@ -223,6 +223,11 @@ def collect_one(name, crawler, keyword):
 
 all_platforms = list(PLATFORM_CRAWLERS.keys())
 
+
+def normalize_platforms(platforms):
+    normalized = ["NOL" if name == "인터파크 투어" else name for name in platforms]
+    return [name for name in normalized if name in all_platforms]
+
 if "result_df" not in st.session_state:
     st.session_state.result_df = None
 if "log_df" not in st.session_state:
@@ -258,7 +263,7 @@ if st.session_state.active_recent:
     cfg = st.session_state.active_recent
     st.session_state.search_keyword_input = cfg.get("keyword", "")
     st.session_state.sort_low_toggle = cfg.get("sort_low", True)
-    st.session_state.platforms_input = cfg.get("platforms", all_platforms)
+    st.session_state.platforms_input = normalize_platforms(cfg.get("platforms", all_platforms))
     st.session_state.reliability_input = cfg.get("reliability", ["즉시반영", "변동가능", "가격확인필요"])
     st.session_state.min_price_input = cfg.get("min_price", 0)
     st.session_state.max_price_input = cfg.get("max_price", 0)
@@ -270,7 +275,7 @@ if st.session_state.run_recent_cfg:
     cfg = st.session_state.run_recent_cfg
     st.session_state.search_keyword_input = cfg.get("keyword", "")
     st.session_state.sort_low_toggle = cfg.get("sort_low", True)
-    st.session_state.platforms_input = cfg.get("platforms", all_platforms)
+    st.session_state.platforms_input = normalize_platforms(cfg.get("platforms", all_platforms))
     st.session_state.reliability_input = cfg.get("reliability", ["즉시반영", "변동가능", "가격확인필요"])
     st.session_state.min_price_input = cfg.get("min_price", 0)
     st.session_state.max_price_input = cfg.get("max_price", 0)
@@ -319,7 +324,7 @@ if st.session_state.run_recent_cfg:
     cfg = st.session_state.run_recent_cfg
     keyword = cfg.get("keyword", keyword)
     sort_low = cfg.get("sort_low", sort_low)
-    selected_platforms = cfg.get("platforms", selected_platforms)
+    selected_platforms = normalize_platforms(cfg.get("platforms", selected_platforms))
     reliability_filter = cfg.get("reliability", reliability_filter)
     min_price = cfg.get("min_price", min_price)
     max_price = cfg.get("max_price", max_price)

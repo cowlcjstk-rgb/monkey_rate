@@ -1,91 +1,84 @@
-﻿import urllib.parse
-import requests
+import re
+import urllib.parse
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from core.types import Item
+from core.utils import keyword_hit
 
-BASE = "https://travel.interpark.com/tna/api/tour-api/tna-product/externals/products"
-CITY_IDS = (
-    "9f63ac1e-153b-4919-80a0-35eef6bf5030,"
-    "de316ec0-fed4-432d-8026-159d61ef73ff,"
-    "fa5ed509-7793-4936-91db-b96fbca974dc,"
-    "4cba5f24-69af-4687-a698-9d48a1b92dd5,"
-    "a5829547-93bd-4d71-80ec-39ecf41d6093,"
-    "b0dfbb16-3107-4a1b-884b-07259e656fea,"
-    "c6012a60-a242-4f0c-8db1-cdde7c791ac1,"
-    "925aa3bf-765f-4384-b231-8b51aaf2efd5"
+
+SEARCH_URL = "https://nol.yanolja.com/discovery/list/search/PRODUCT_CATEGORY_GLOBAL_TNA"
+SEARCH_FILTER = (
+    "4XAAjW4YDKiGgVn9lFSyTxpjxAorLCVFlxeJFDYNPXa0IMAZYlWKBPjR2h8r0yXJwu8wF7wadfsuPxuBSPhiaxMxce7ZESB1T"
+    "WgSqrIKaJC9tR8drYAuegjF30cyJERTKFRM7zoa4V71dKMTF8ZB6AMNazbqMAf"
 )
+CARD_SELECTOR = "a[data-card-type='basic'][href*='/tna/products/']"
 
 
-def _format_price(value) -> str:
-    try:
-        return f"{int(value):,}원"
-    except Exception:
-        return "가격 확인"
+def _read_cards(driver):
+    return driver.execute_script(
+        """
+        return [...document.querySelectorAll(arguments[0])].map(card => {
+            const price = card.querySelector('[aria-label^="판매가"]');
+            const title = card.querySelector('span.line-clamp-2');
+            return {
+                title: title?.innerText?.trim() || '',
+                price: price?.getAttribute('aria-label') || '',
+                text: card.innerText || '',
+                link: card.href || ''
+            };
+        });
+        """,
+        CARD_SELECTOR,
+    )
+
+
+def _price_text(card):
+    match = re.search(r"판매가\s*([0-9,]+)\s*원", card.get("price", ""))
+    if not match:
+        # Fallback for a markup change while keeping price extraction to KRW values.
+        match = re.search(r"최대할인가\s*([0-9,]+)\s*원", card.get("text", ""))
+    return f"{match.group(1)}원" if match else "가격 확인"
 
 
 def crawl(driver, keyword: str, limit: int = 40):
-    session = requests.Session()
-    session.headers.update({
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "application/json, text/plain, */*",
-        "Referer": "https://travel.interpark.com/",
-    })
+    if not keyword or not keyword.strip():
+        return []
 
-    results = []
+    query = urllib.parse.urlencode({"filter": SEARCH_FILTER, "q": keyword.strip()})
+    driver.get(f"{SEARCH_URL}?{query}")
+    WebDriverWait(driver, 25).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, CARD_SELECTOR))
+    )
+
     seen = set()
-
-    page = 1
-    size = 20
-    max_pages = 10  # 스크롤 추가 로딩 대응 상한
-
-    while len(results) < limit and page <= max_pages:
-        params = {
-            "page": page,
-            "size": size,
-            "withAdditionalPrice": "true",
-            "withReview": "true",
-            "language": "KO",
-            "currency": "KRW",
-            "sortType": "RECOMMEND",
-            "keyword": keyword,
-            "maxPrice": "",
-            "cityIds": CITY_IDS,
-        }
-
-        r = session.get(BASE, params=params, timeout=20)
-        if r.status_code >= 400:
-            raise RuntimeError(f"인터파크 API 실패: HTTP {r.status_code}")
-
-        data = r.json() if r.text else {}
-        body = data.get("body") or []
-        page_info = data.get("page") or {}
-
-        if not body:
-            break
-
-        for it in body:
+    results = []
+    for _ in range(10):
+        for card in _read_cards(driver):
+            link = card.get("link", "")
+            title = card.get("title", "")
+            if not link or not title or link in seen:
+                continue
+            seen.add(link)
+            if not keyword_hit(title, "", keyword):
+                continue
+            results.append(Item("NOL", title, _price_text(card), link))
             if len(results) >= limit:
-                break
+                return results
 
-            pid = (it.get("id") or "").strip()
-            title = (it.get("name") or "").strip()
-            if not pid or not title:
-                continue
-
-            if pid in seen:
-                continue
-            seen.add(pid)
-
-            price_obj = it.get("price") or {}
-            display_price = price_obj.get("display") or price_obj.get("sales")
-            price = _format_price(display_price)
-
-            link = f"https://travel.interpark.com/tna/products/{pid}"
-            results.append(Item("인터파크 투어", title, price, link))
-
-        total_pages = int(page_info.get("totalPages") or 0)
-        if total_pages and page >= total_pages:
+        previous_count = len(seen)
+        more_button = driver.execute_script(
+            """return [...document.querySelectorAll('button')]
+                .find(button => (button.innerText || '').includes('더보기')) || null;"""
+        )
+        if not more_button:
             break
-        page += 1
+        driver.execute_script("arguments[0].click()", more_button)
+        try:
+            WebDriverWait(driver, 8).until(lambda d: len(_read_cards(d)) > previous_count)
+        except Exception:
+            break
 
     return results
