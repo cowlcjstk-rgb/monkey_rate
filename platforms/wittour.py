@@ -4,6 +4,7 @@ import re
 import urllib.parse
 
 from core.types import Item
+from core.utils import keyword_hit
 
 
 PRODUCT_META_RE = re.compile(
@@ -12,7 +13,7 @@ PRODUCT_META_RE = re.compile(
 )
 
 
-def _extract_from_source(page_source: str, limit: int):
+def _extract_from_source(page_source: str, limit: int, keyword: str = ""):
     results = []
     seen = set()
 
@@ -39,6 +40,8 @@ def _extract_from_source(page_source: str, limit: int):
 
         if not name:
             continue
+        if keyword and not keyword_hit(name, "", keyword):
+            continue
 
         seen.add(pid)
         price = f"{int(price_val):,}원" if price_val.isdigit() else "가격 확인"
@@ -58,4 +61,4 @@ def crawl(driver, keyword: str, limit: int = 40):
 
     # 페이지 소스의 data-shp 메타데이터에서 상품명/가격/ID 파싱
     page_source = driver.page_source or ""
-    return _extract_from_source(page_source, limit=limit)
+    return _extract_from_source(page_source, limit=limit, keyword=keyword)

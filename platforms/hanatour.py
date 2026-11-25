@@ -5,6 +5,7 @@ import urllib.parse
 from typing import Any, Dict, List, Optional
 
 from core.types import Item
+from core.utils import keyword_hit
 
 API_URL_KEYWORD = "gw.hanatour.com/search/v2/attr/localTour/search"
 SEARCH_PAGE = "https://www.hanatour.com/tour-ticket/product"
@@ -24,7 +25,7 @@ def _format_price(price_raw: str) -> str:
     return "가격 확인"
 
 
-def _extract_items(payload: Dict[str, Any], limit: int) -> List[Item]:
+def _extract_items(payload: Dict[str, Any], limit: int, keyword: str = "") -> List[Item]:
     out: List[Item] = []
     data = (payload or {}).get("data") or {}
     arr = data.get("data") or []
@@ -39,6 +40,8 @@ def _extract_items(payload: Dict[str, Any], limit: int) -> List[Item]:
         price = _format_price(it.get("discountPrice") or it.get("regularPrice") or "")
 
         if not title or not link.startswith("http"):
+            continue
+        if keyword and not keyword_hit(title, "", keyword):
             continue
         if link in seen:
             continue
@@ -124,4 +127,4 @@ def crawl(driver, keyword: str, limit: int = 40):
     if not payload:
         return []
 
-    return _extract_items(payload, limit=limit)
+    return _extract_items(payload, limit=limit, keyword=keyword)

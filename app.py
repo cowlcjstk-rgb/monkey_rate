@@ -120,6 +120,7 @@ PLATFORM_ROW_COLORS = {
     "더블유아이티": "#f7dcec",
     "타이클럽": "#f8dada",
     "마이리얼트립": "#e3dcfb",
+    "아고다": "#d5f3f2",
 }
 
 RELIABILITY_COLORS = {
@@ -179,7 +180,7 @@ def collect_one(name, crawler, keyword):
                     "상태": "결과없음",
                     "건수": 0,
                     "실패코드": "-",
-                    "메모": "검색 결과 없음",
+                    "메모": "검색 결과가 없거나 사이트에서 결과를 읽지 못했습니다.",
                     "요청시간(ms)": elapsed,
                     "수집시각": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 },
@@ -405,10 +406,11 @@ else:
             )
         ]
 
-    if sort_low:
-        raw_df = raw_df.sort_values(by=["검색점수", "가격숫자"], ascending=[False, True], na_position="last")
-    else:
-        raw_df = raw_df.sort_values(by=["검색점수", "가격숫자"], ascending=[False, True], na_position="last")
+    raw_df = raw_df.sort_values(
+        by=["검색점수", "가격숫자"],
+        ascending=[False, bool(sort_low)],
+        na_position="last",
+    )
 
     cheapest_num = raw_df["가격숫자"].dropna().min() if raw_df["가격숫자"].notna().any() else None
 

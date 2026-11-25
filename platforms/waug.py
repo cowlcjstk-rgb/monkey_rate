@@ -3,7 +3,7 @@ import urllib.parse
 from selenium.webdriver.common.by import By
 
 from core.types import Item
-from core.utils import wait_present, smart_scroll, extract_first_text, clean_price
+from core.utils import wait_present, smart_scroll, extract_first_text, clean_price, keyword_hit
 
 
 def crawl(driver, keyword: str, limit: int = 40):
@@ -45,6 +45,9 @@ def crawl(driver, keyword: str, limit: int = 40):
 
             if not title and text_content:
                 title = text_content.split("\n")[0].strip()
+
+            if not keyword_hit(title, text_content, keyword):
+                continue
 
             price = clean_price(text_content)
 

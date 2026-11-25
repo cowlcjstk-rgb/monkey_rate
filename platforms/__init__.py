@@ -1,4 +1,4 @@
-﻿from . import hanatour, interpark_tour, monkeytravel, myrealtrip, thaiclub, waug, wittour
+from . import agoda, hanatour, interpark_tour, monkeytravel, myrealtrip, thaiclub, waug, wittour
 
 PLATFORM_CRAWLERS = {
     "마이리얼트립": myrealtrip.crawl,
@@ -8,4 +8,5 @@ PLATFORM_CRAWLERS = {
     "더블유아이티": wittour.crawl,
     "타이클럽": thaiclub.crawl,
     "몽키트래블": monkeytravel.crawl,
+    "아고다": agoda.crawl,
 }
