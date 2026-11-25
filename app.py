@@ -135,7 +135,12 @@ def style_result_table(df: pd.DataFrame):
         bg = PLATFORM_ROW_COLORS.get(v, "")
         return f"background-color: {bg}; color: #111827; font-weight: 800;" if bg else "font-weight: 700;"
 
-    styler = df.style
+    styler = df.style.set_properties(**{"text-align": "center"}).set_table_styles(
+        [{"selector": "th", "props": [("text-align", "center")]}],
+        overwrite=False,
+    )
+    if "상품명" in df.columns:
+        styler = styler.set_properties(subset=["상품명"], **{"text-align": "left"})
 
     if "신뢰도" in df.columns:
         for label, (bg, fg) in RELIABILITY_COLORS.items():
@@ -374,7 +379,6 @@ if run and keyword and selected_platforms:
                 "플랫폼": x.platform,
                 "상품명": x.title,
                 "가격": x.price,
-                "공급사 ID": x.supplier_id or "확인 불가",
                 "공급업체": x.supplier_name or "확인 불가",
                 "판매 사업자": x.merchant_name or "확인 불가",
                 "링크": x.link,
@@ -458,7 +462,7 @@ else:
         if watch_price_overall > 0:
             show_df = show_df[(show_df["가격숫자"].notna()) & (show_df["가격숫자"] <= watch_price_overall)].copy()
 
-        table_df = show_df[["플랫폼", "상품명", "가격", "공급사 ID", "공급업체", "판매 사업자", "신뢰도", "링크"]].copy()
+        table_df = show_df[["플랫폼", "상품명", "가격", "공급업체", "판매 사업자", "신뢰도", "링크"]].copy()
         st.dataframe(
             style_result_table(table_df),
             width="stretch",
@@ -566,7 +570,7 @@ else:
             pf_df = pf_df.sort_values(by=["상품명"])
 
         st.dataframe(
-            style_result_table(pf_df[["플랫폼", "상품명", "가격", "공급사 ID", "공급업체", "판매 사업자", "신뢰도", "지역", "링크"]]),
+            style_result_table(pf_df[["플랫폼", "상품명", "가격", "공급업체", "판매 사업자", "신뢰도", "지역", "링크"]]),
             width="stretch",
             hide_index=True,
             column_config={"링크": st.column_config.LinkColumn("링크", display_text="바로가기")},
@@ -574,7 +578,7 @@ else:
 
     with tabs[3]:
         log_df = st.session_state.log_df if st.session_state.log_df is not None else pd.DataFrame(columns=["플랫폼", "상태", "건수", "실패코드", "메모", "요청시간(ms)", "수집시각"])
-        st.dataframe(log_df, width="stretch", hide_index=True)
+        st.dataframe(style_result_table(log_df), width="stretch", hide_index=True)
 
     st.markdown("---")
     e1, e2 = st.columns(2)
