@@ -23,9 +23,11 @@ def _read_cards(driver):
         return [...document.querySelectorAll(arguments[0])].map(card => {
             const price = card.querySelector('[aria-label^="판매가"]');
             const title = card.querySelector('span.line-clamp-2');
+            const merchant = card.querySelector("div[class*='bg-fill-primary-weak']");
             return {
                 title: title?.innerText?.trim() || '',
                 price: price?.getAttribute('aria-label') || '',
+                merchant: merchant?.innerText?.trim() || '',
                 text: card.innerText || '',
                 link: card.href || ''
             };
@@ -64,7 +66,7 @@ def crawl(driver, keyword: str, limit: int = 40):
             seen.add(link)
             if not keyword_hit(title, "", keyword):
                 continue
-            results.append(Item("NOL", title, _price_text(card), link))
+            results.append(Item("NOL", title, _price_text(card), link, merchant_name=card.get("merchant", "")))
             if len(results) >= limit:
                 return results
 

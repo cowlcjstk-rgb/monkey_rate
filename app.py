@@ -374,9 +374,9 @@ if run and keyword and selected_platforms:
                 "플랫폼": x.platform,
                 "상품명": x.title,
                 "가격": x.price,
-                "공급사 ID": x.supplier_id,
-                "공급업체": x.supplier_name,
-                "판매 사업자": x.merchant_name,
+                "공급사 ID": x.supplier_id or "확인 불가",
+                "공급업체": x.supplier_name or "확인 불가",
+                "판매 사업자": x.merchant_name or "확인 불가",
                 "링크": x.link,
             }
             for x in all_items
