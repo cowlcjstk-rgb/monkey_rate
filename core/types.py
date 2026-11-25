@@ -6,3 +6,6 @@ class Item:
     title: str
     price: str
     link: str
+    supplier_id: str = ""
+    supplier_name: str = ""
+    merchant_name: str = ""

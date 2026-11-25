@@ -370,7 +370,15 @@ if run and keyword and selected_platforms:
 
     if all_items:
         df = pd.DataFrame([
-            {"플랫폼": x.platform, "상품명": x.title, "가격": x.price, "링크": x.link}
+            {
+                "플랫폼": x.platform,
+                "상품명": x.title,
+                "가격": x.price,
+                "공급사 ID": x.supplier_id,
+                "공급업체": x.supplier_name,
+                "판매 사업자": x.merchant_name,
+                "링크": x.link,
+            }
             for x in all_items
         ])
         df["가격숫자"] = df["가격"].apply(extract_price_number)
@@ -450,7 +458,7 @@ else:
         if watch_price_overall > 0:
             show_df = show_df[(show_df["가격숫자"].notna()) & (show_df["가격숫자"] <= watch_price_overall)].copy()
 
-        table_df = show_df[["플랫폼", "상품명", "가격", "신뢰도", "링크"]].copy()
+        table_df = show_df[["플랫폼", "상품명", "가격", "공급사 ID", "공급업체", "판매 사업자", "신뢰도", "링크"]].copy()
         st.dataframe(
             style_result_table(table_df),
             use_container_width=True,
@@ -558,7 +566,7 @@ else:
             pf_df = pf_df.sort_values(by=["상품명"])
 
         st.dataframe(
-            style_result_table(pf_df[["플랫폼", "상품명", "가격", "신뢰도", "지역", "링크"]]),
+            style_result_table(pf_df[["플랫폼", "상품명", "가격", "공급사 ID", "공급업체", "판매 사업자", "신뢰도", "지역", "링크"]]),
             use_container_width=True,
             hide_index=True,
             column_config={"링크": st.column_config.LinkColumn("링크", display_text="바로가기")},

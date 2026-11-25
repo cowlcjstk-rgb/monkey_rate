@@ -12,6 +12,9 @@ SEARCH_URL = (
     "?cityId=9395&currency=KRW&cid=1908612"
 )
 API_URL = "https://www.agoda.com/api/activities/graphql"
+SUPPLIER_NAMES = {50005: "GlobalTix"}
+# Verified from Agoda's booking/setup response for this specific activity.
+VERIFIED_MERCHANTS = {1641313: "Hungry Hub (THB)"}
 
 
 def _capture_search_request(driver, timeout: int = 12):
@@ -102,6 +105,7 @@ def crawl(driver, keyword: str, limit: int = 40):
             info = activity.get("activityRepresentativeInfo") or {}
             title = ((activity.get("content") or {}).get("activity") or {}).get("title", "").strip()
             activity_id = info.get("activityId")
+            supplier_id = activity.get("masterSupplierId")
             if not title or not activity_id or activity_id in seen:
                 continue
             seen.add(activity_id)
@@ -112,7 +116,15 @@ def crawl(driver, keyword: str, limit: int = 40):
                 "https://www.agoda.com/ko-kr/activities/detail"
                 f"?activityId={activity_id}&cityId=9395&currency=KRW&cid=1908612"
             )
-            results.append(Item("아고다", title, _format_price(activity), link))
+            results.append(Item(
+                "아고다",
+                title,
+                _format_price(activity),
+                link,
+                supplier_id=str(supplier_id or ""),
+                supplier_name=SUPPLIER_NAMES.get(supplier_id, ""),
+                merchant_name=VERIFIED_MERCHANTS.get(int(activity_id), ""),
+            ))
             if len(results) >= limit:
                 break
 
