@@ -289,7 +289,7 @@ with st.form("search_form", clear_on_submit=False):
     with c2:
         sort_low = st.toggle("낮은 가격순", key="sort_low_toggle")
     with c3:
-        run = st.form_submit_button("검색 실행", use_container_width=True)
+        run = st.form_submit_button("검색 실행", width="stretch")
     with c4:
         with st.popover("도움말"):
             st.markdown(
@@ -461,7 +461,7 @@ else:
         table_df = show_df[["플랫폼", "상품명", "가격", "공급사 ID", "공급업체", "판매 사업자", "신뢰도", "링크"]].copy()
         st.dataframe(
             style_result_table(table_df),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={"링크": st.column_config.LinkColumn("링크", display_text="바로가기")},
         )
@@ -483,7 +483,7 @@ else:
             monkey_base_title = base_row["상품명"]
 
             st.caption(f"기준 상품: {monkey_base_title} / {base_row['가격']}")
-            st.link_button("기준 몽키 상품 바로가기", base_row["링크"], use_container_width=False)
+            st.link_button("기준 몽키 상품 바로가기", base_row["링크"], width="content")
 
             cheaper = raw_df[
                 (raw_df["플랫폼"] != "몽키트래블")
@@ -500,7 +500,7 @@ else:
                 cheaper = cheaper.sort_values(by=["가격숫자"])
                 st.dataframe(
                     style_result_table(cheaper[["플랫폼", "상품명", "가격", "기준가", "차이", "비교기준", "링크"]]),
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True,
                     column_config={"링크": st.column_config.LinkColumn("링크", display_text="바로가기")},
                 )
@@ -521,7 +521,7 @@ else:
                 tracked = tracked.sort_values(by=["가격숫자"])
                 st.dataframe(
                     style_result_table(tracked[["플랫폼", "상품명", "가격", "변화", "새로 내려감", "링크"]]),
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True,
                     column_config={"링크": st.column_config.LinkColumn("링크", display_text="바로가기")},
                 )
@@ -541,7 +541,7 @@ else:
                         with left:
                             st.caption(label)
                         with right:
-                            if st.button("불러오기", key=f"recent_load_{idx}_{search_seq}", use_container_width=True):
+                            if st.button("불러오기", key=f"recent_load_{idx}_{search_seq}", width="stretch"):
                                 st.session_state.run_recent_cfg = item
                                 st.rerun()
 
@@ -567,20 +567,20 @@ else:
 
         st.dataframe(
             style_result_table(pf_df[["플랫폼", "상품명", "가격", "공급사 ID", "공급업체", "판매 사업자", "신뢰도", "지역", "링크"]]),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={"링크": st.column_config.LinkColumn("링크", display_text="바로가기")},
         )
 
     with tabs[3]:
         log_df = st.session_state.log_df if st.session_state.log_df is not None else pd.DataFrame(columns=["플랫폼", "상태", "건수", "실패코드", "메모", "요청시간(ms)", "수집시각"])
-        st.dataframe(log_df, use_container_width=True, hide_index=True)
+        st.dataframe(log_df, width="stretch", hide_index=True)
 
     st.markdown("---")
     e1, e2 = st.columns(2)
     with e1:
         csv_bytes = raw_df.to_csv(index=False).encode("utf-8-sig")
-        st.download_button("CSV 다운로드", data=csv_bytes, file_name="price_compare.csv", mime="text/csv", use_container_width=True)
+        st.download_button("CSV 다운로드", data=csv_bytes, file_name="price_compare.csv", mime="text/csv", width="stretch")
     with e2:
         raw_df.to_excel(EXPORT_FILE, index=False)
-        st.download_button("엑셀 다운로드", data=EXPORT_FILE.read_bytes(), file_name="price_compare.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+        st.download_button("엑셀 다운로드", data=EXPORT_FILE.read_bytes(), file_name="price_compare.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", width="stretch")
