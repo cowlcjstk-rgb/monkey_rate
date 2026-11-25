@@ -12,7 +12,15 @@ SEARCH_URL = (
     "?cityId=9395&currency=KRW&cid=1908612"
 )
 API_URL = "https://www.agoda.com/api/activities/graphql"
-SUPPLIER_NAMES = {50005: "GlobalTix"}
+SUPPLIER_NAMES = {
+    50002: "Kkday",
+    50003: "Bcom",
+    50005: "GlobalTix",
+}
+MERCHANT_NAMES_BY_SUPPLIER = {
+    50002: "KKday Singapore Pte. Ltd.",
+    50003: "Klook Travel Technology Limited",
+}
 # Verified from Agoda's booking/setup response for this specific activity.
 VERIFIED_MERCHANTS = {1641313: "Hungry Hub (THB)"}
 
@@ -123,7 +131,9 @@ def crawl(driver, keyword: str, limit: int = 40):
                 link,
                 supplier_id=str(supplier_id or ""),
                 supplier_name=SUPPLIER_NAMES.get(supplier_id, ""),
-                merchant_name=VERIFIED_MERCHANTS.get(int(activity_id), ""),
+                merchant_name=VERIFIED_MERCHANTS.get(
+                    int(activity_id), MERCHANT_NAMES_BY_SUPPLIER.get(supplier_id, "")
+                ),
             ))
             if len(results) >= limit:
                 break
