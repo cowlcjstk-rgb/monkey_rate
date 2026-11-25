@@ -59,7 +59,8 @@ def crawl(driver, keyword: str, limit: int = 40):
     if not keyword or not keyword.strip():
         return []
 
-    driver.get(SEARCH_URL)
+    encoded_keyword = requests.utils.quote(keyword.strip())
+    driver.get(f"{SEARCH_URL}&keyword={encoded_keyword}")
     request_url, request_body, request_headers = _capture_search_request(driver)
     if not request_body:
         raise RuntimeError("아고다 검색 API 요청을 확인하지 못했습니다.")
@@ -81,7 +82,10 @@ def crawl(driver, keyword: str, limit: int = 40):
         body = json.loads(json.dumps(request_body))
         search_request = body["variables"]["SearchRequest"]["searchRequest"]
         search_request["searchCriteria"]["pagination"]["number"] = page_number
-        body["queryString"] = f"?operation=search&cityId=9395&pageNumber={page_number}"
+        body["queryString"] = (
+            f"?operation=search&cityId=9395&keyword={encoded_keyword}"
+            f"&pageNumber={page_number}"
+        )
         response = session.post(
             f"{base_url}&pageNumber={page_number}&key=Search",
             json=body,
