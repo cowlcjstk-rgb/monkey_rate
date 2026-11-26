@@ -6,6 +6,11 @@ from core.types import Item
 from core.utils import wait_present, smart_scroll, extract_first_text, clean_price, keyword_hit
 
 
+VERIFIED_MERCHANT_BY_PRODUCT = {
+    "148520": "WAUG M Tour & Tickets",
+}
+
+
 def crawl(driver, keyword: str, limit: int = 40):
     results = []
     encoded = urllib.parse.quote(keyword)
@@ -52,7 +57,9 @@ def crawl(driver, keyword: str, limit: int = 40):
             price = clean_price(text_content)
 
             if title:
-                results.append(Item("와그", title, price, link))
+                product_id = link.rstrip("/").split("/")[-1].split("?", 1)[0]
+                merchant = VERIFIED_MERCHANT_BY_PRODUCT.get(product_id, "")
+                results.append(Item("와그", title, price, link, merchant_name=merchant))
         except Exception:
             continue
 

@@ -20,6 +20,7 @@ CARD_SELECTOR = "a[data-card-type='basic'][href*='/tna/products/']"
 # requesting every product detail page during each search.
 VERIFIED_MERCHANT_BY_PRODUCT = {
     "ebf51142-9aee-4dbe-a389-5e4e46716283": "몽키트래블 태국",
+    "ae410d7e-c42d-4480-ae07-dc07dc7e904a": "몽키트래블 태국",
 }
 
 
