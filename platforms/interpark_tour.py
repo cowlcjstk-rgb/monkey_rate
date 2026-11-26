@@ -15,6 +15,12 @@ SEARCH_FILTER = (
     "WgSqrIKaJC9tR8drYAuegjF30cyJERTKFRM7zoa4V71dKMTF8ZB6AMNazbqMAf"
 )
 CARD_SELECTOR = "a[data-card-type='basic'][href*='/tna/products/']"
+# Product-detail pages identify the registered seller; search cards can instead
+# display a distribution channel. Keep verified corrections here to avoid
+# requesting every product detail page during each search.
+VERIFIED_MERCHANT_BY_PRODUCT = {
+    "ebf51142-9aee-4dbe-a389-5e4e46716283": "몽키트래블 태국",
+}
 
 
 def _read_cards(driver):
@@ -66,7 +72,9 @@ def crawl(driver, keyword: str, limit: int = 40):
             seen.add(link)
             if not keyword_hit(title, "", keyword):
                 continue
-            results.append(Item("NOL", title, _price_text(card), link, merchant_name=card.get("merchant", "")))
+            product_id = link.split("/tna/products/")[-1].split("?", 1)[0]
+            merchant = VERIFIED_MERCHANT_BY_PRODUCT.get(product_id, card.get("merchant", ""))
+            results.append(Item("NOL", title, _price_text(card), link, merchant_name=merchant))
             if len(results) >= limit:
                 return results
 
